@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monster Quest: Math Battle</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  
+  <div id="stats">
+    ❤️ <span id="hearts">3</span> | 💰 <span id="coins">0</span>
+  </div>
+
+  <div id="map"></div>
+  
+  <div id="sprite">
+	<img id="sprite-img" src="" alt="scene" width="150" />
+  </div>
+
+
+
+<div id="intro-modal">
+  <div class="intro-content">
+    
+  </div>
+  
+  <div class="door-container" id="door-button" onclick="startGame()">
+    <img src="assets/sprites/dungeon/door1.png" class="door-frame frame-1">
+    <img src="assets/sprites/dungeon/door2.png" class="door-frame frame-2">
+    <img src="assets/sprites/dungeon/door3.png" class="door-frame frame-3">
+    <img src="assets/sprites/dungeon/door4.png" class="door-frame frame-4">
+  </div>
+  
+</div>
+
+ <div id="walk-modal">
+  <img id="walk-img" src="" alt="walking" />
+ </div>
+ 
+<div id="attack-modal" style="display:none;">
+  <img id="attack-img" src="assets/sprites/hero/battle/sprite_00.png" />
+</div> 
+  
+<div id="battle-modal">
+  <div id="battle-box">
+    <div id="enemy-animation-container">
+      <img id="enemy-img" src="" alt="Enemy" />
+    </div>
+    <p id="battle-question">Monster asks...</p>
+    <input type="number" id="battle-answer" placeholder="Your answer" />
+		<button id="submit-btn" onclick="submitAnswer()">
+		  <img src="assets/ui/submit-btn.png" alt="Submit" />
+		</button>
+    <p id="battle-result"></p>
+  </div>
+</div>
+
+<div id="swing-overlay" style="display: none;">
+  <img id="swing-img" src="" alt="hero attack" />
+</div>
+
+  <div id="game"></div>
+
+<div id="choices">
+  <button class="path-button" onclick="choosePath('left')">
+    <img src="assets/ui/left-btn.png" alt="Go Left" />
+  </button>
+  <button class="path-button" onclick="choosePath('right')">
+    <img src="assets/ui/right-btn.png" alt="Go Right" />
+  </button>
+</div>
+
+  <script src="js/main.js"></script>
+  
+</body>
+</html>
