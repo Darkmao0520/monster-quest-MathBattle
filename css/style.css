@@ -338,3 +338,35 @@ body {
 .room.current { background-color: #2196f3; }
 .room.dead { background-color: #e53935; }
 .room.unvisited { background-color: #999; }
+
+
+
+.choices-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-content: stretch;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.answer-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 20px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  background-color: #3b3b3b;
+  color: #fff;
+  border: 2px solid #888;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.answer-btn:hover {
+  background-color: #66cc66;
+  transform: scale(1.05);
+}

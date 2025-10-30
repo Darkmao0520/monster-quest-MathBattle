@@ -15,6 +15,26 @@ const battleQuestion = document.getElementById("battle-question");
 const battleAnswer = document.getElementById("battle-answer");
 const battleResult = document.getElementById("battle-result");
 
+// Load sounds
+const attackSound = new Audio('assets/sfx/slash.mp3');
+const monsterAttacked = new Audio('assets/sfx/slime_impact.mp3');
+const correctSound = new Audio('sounds/correct.mp3');
+const wrongSound = new Audio('assets/sfx/ouch.mp3');
+const bgm = new Audio('assets/sfx/bgm.mp3');
+const entered = new Audio('assets/sfx/enter.mp3');
+const monsterEncouter = new Audio('assets/sfx/monster_block.mp3');
+const monsterDefeated = new Audio('assets/sfx/defeat_monster.mp3');
+const walking = new Audio('assets/sfx/walking.mp3');
+const gameoverSound = new Audio('assets/sfx/game_over.mp3');
+const foundHeart = new Audio('assets/sfx/found_heart.mp3');
+const foundEmpty = new Audio('assets/sfx/empty_chest.mp3');
+const foundCoin = new Audio('assets/sfx/found_coin.mp3');
+const youwinSound = new Audio('assets/sfx/you_win.mp3');
+
+
+// Loop background music
+bgm.loop = true;
+
 // Animation state
 let animationInterval = null;
 let heroFrames = [
@@ -298,13 +318,25 @@ function choosePath(direction) {
 		hearts++;
 		animateChest(heartChestFrames || ["assets/sprites/treasure/gem_chest.png"]);
 		gameEl.innerHTML = "You found a ❤️ heart!";
+		
+		foundHeart.play();
+		
 	  } else if (loot === "coin") {
 		coins++;
 		animateChest(coinChestFrames || ["assets/sprites/treasure/gold_chest.png"]);
 		gameEl.innerHTML = "You found a 💰 coin!";
+		
+		
+		// sound effect
+		foundCoin.play();
+		
 	  } else {
 	    animateChest(emptyChestFrames || ["assets/sprites/treasure/empty_chest.png"]);
 		gameEl.innerHTML = "You opened a chest... but it's empty.";
+		
+		// sound effect
+		foundEmpty.play();
+		
 	  }
 
 	  nextRoom();
@@ -313,6 +345,10 @@ function choosePath(direction) {
 	  stopAnimation();
 	  animateChest(emptyChestFrames); // Animate empty chest
 	  gameEl.innerHTML = "You opened a chest... but it's empty.";
+	  
+	  // sound effect
+	  foundEmpty.play();
+		
 	  nextRoom();
 	}
 
@@ -352,6 +388,27 @@ function animateChest(frames) {
     }
   }, 100);
 }
+
+
+
+let soundEnabled = true;
+
+document.getElementById("toggle-sound").addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  document.getElementById("toggle-sound").textContent = soundEnabled ? "🔊 Sound On" : "🔇 Sound Off";
+  
+  if (!soundEnabled) {
+    bgm.pause();
+  } else {
+    bgm.play();
+  }
+});
+
+// Example usage
+function playSound(sound) {
+  if (soundEnabled) sound.play();
+}
+
 
 
 function animateEnemyStrike(frames, loopDuration = 600) {
@@ -394,52 +451,77 @@ function startBattle() {
   // Start enemy animation
   startEnemyAnimation();
 
+  // sound effect
+  monsterEncouter.play();
+
   // Set question text
   battleQuestion.innerHTML = `A ${currentEnemy.name} blocks your way!<br>What is ${a} + ${b}?`;
-  battleAnswer.value = "";
+  
+  // Generate multiple choice options
+  const choices = generateChoices(currentCorrectAnswer);
+
+  // Create buttons dynamically
+  battleAnswer.innerHTML = "";
+  choices.forEach((choice) => {
+    const btn = document.createElement("button");
+    btn.className = "answer-btn";
+    btn.textContent = choice;
+    btn.onclick = () => submitAnswer(choice);
+    battleAnswer.appendChild(btn);
+  });
+
   battleResult.textContent = "";
   battleModal.style.display = "flex";
-
-  setTimeout(() => battleAnswer.focus(), 100);
 }
 
-function submitAnswer() {
-  const userAnswer = parseInt(battleAnswer.value);
+
+function generateChoices(correct) {
+  const choices = new Set();
+  choices.add(correct);
+  while (choices.size < 4) {
+    const wrong = correct + Math.floor(Math.random() * 5) - 2; // small random offset
+    if (wrong > 0) choices.add(wrong);
+  }
+  return Array.from(choices).sort(() => Math.random() - 0.5); // shuffle
+}
+
+function submitAnswer(selectedAnswer) {
   battleModal.style.display = "none";
 
-  if (userAnswer === currentCorrectAnswer) {
+  if (selectedAnswer === currentCorrectAnswer) {
     if (currentEnemy.drop === "coin") coins++;
     if (currentEnemy.drop === "heart" && hearts < 3) hearts++;
     gameEl.innerHTML = `You defeated the ${currentEnemy.name}!`;
 
-	  // ✅ Show modal attack animation
-	  showAttackAnimation(() => {
-		animateMonsterDefeat();
-		showVictoryAnimation();
-	  });
+    // ✅ Show modal attack animation
+    showAttackAnimation(() => {
+      animateMonsterDefeat();
+      showVictoryAnimation();
+    });
 
-	
+    // sound effect
+    correctSound.play();
+
   } else {
     const damage = Math.min(currentEnemyDamage, hearts);
-
-    // play looping enemy strike animation
     animateEnemyStrike(enemyStrikeFrames);
     hearts -= damage;
-    gameEl.innerHTML = `Wrong! The ${currentEnemy.name} hit you for ${damage} damage!`;
-	
-	// Damage animation effect
-    spriteImg.classList.add("shake");
-	
-	  stopAnimation();
-	  stopEnemyAnimation();
-	  renderStats();
-	  renderMap();
-	  nextRoom();
-	  
-	  
-  }
 
+    // sound effect
+    wrongSound.play();
+
+    gameEl.innerHTML = `Wrong! The ${currentEnemy.name} hit you for ${damage} damage!`;
+
+    spriteImg.classList.add("shake");
+
+    stopAnimation();
+    stopEnemyAnimation();
+    renderStats();
+    renderMap();
+    nextRoom();
+  }
 }
+
 
 function nextRoom() {
 	
@@ -449,6 +531,10 @@ function nextRoom() {
   stopEnemyAnimation();
   
   spriteImg.src = "assets/sprites/hero/gameover.png";
+  
+  // sound effect
+  gameoverSound.play();
+  
     gameEl.innerHTML += "<br><strong>Game Over!</strong>";
 		document.getElementById("choices").innerHTML = `
 		  <button onclick="restartGame()" class="restart-btn">
@@ -456,6 +542,10 @@ function nextRoom() {
 		  </button>
 		`;
   } else if (currentRoom >= totalRooms) {
+	  
+  // sound effect
+  youwinSound.play();
+	  
     gameEl.innerHTML += "<br><strong>You escaped the dungeon!</strong>";
 		document.getElementById("choices").innerHTML = `
 	  <button onclick="restartGame()" class="restart-btn">
@@ -469,6 +559,9 @@ function restartGame() {
   hearts = 3;
   coins = 0;
   currentRoom = 0;
+  
+  // sound effect
+  entered.play();
   
   gameEl.innerHTML = "You re-enter the dungeon...";
   
@@ -489,6 +582,7 @@ function restartGame() {
 }
 
 function startHeroAnimation() {
+	
   if (animationInterval) clearInterval(animationInterval);
   animationInterval = setInterval(() => {
     currentHeroFrame = (currentHeroFrame + 1) % heroFrames.length;
@@ -499,12 +593,21 @@ function startHeroAnimation() {
 function stopAnimation() {
   if (animationInterval) clearInterval(animationInterval);
   animationInterval = null;
+  
+  // sound effect stopper
+  
+  walking.pause();
+  walking.currentTime = 0;
+  
 }
 
 
 function showWalkAnimation(callback) {
   walkModal.style.display = "flex";
   currentWalkFrame = 0;
+
+  // sound effect
+  walking.play();
 
   walkInterval = setInterval(() => {
     walkImg.src = walkFrames[currentWalkFrame];
@@ -522,6 +625,11 @@ function showWalkAnimation(callback) {
 function animateMonsterDefeat() {
   // create image element for the defeated effect
   const img = document.createElement("img");
+  
+  // sound effect
+  monsterAttacked.play();
+  
+  
   img.src = "assets/sprites/enemies/defeated_monser.png"; // path from provided container
   img.className = "defeat-overlay";
 
@@ -556,6 +664,10 @@ function showAttackAnimation(callback) {
 
   attackModal.style.display = "flex";
 
+ // sound effect
+ attackSound.playbackRate = 0.5; // 0.5 = half speed (slower)
+ attackSound.play();
+
   const attackInterval = setInterval(() => {
     attackImg.src = heroAttackFrames[frame];
     frame++;
@@ -564,30 +676,38 @@ function showAttackAnimation(callback) {
       attackModal.style.display = "none";
       if (callback) callback();
     }
-  }, 70); // adjust speed
+  }, 35); // adjust speed
 }
 
 function showVictoryAnimation() {
   const victoryEl = document.getElementById("sprite-img");
-  //victoryEl.style.display = "block";
+
+  // sound effect
+  monsterDefeated.play();
+  
   spriteImg.src = "assets/ui/winner.png";
 
-/*   setTimeout(() => {
-    victoryEl.style.display = "none";
-  }, 2000); // Show for 2 seconds */
 }
 
 function startGame() {
 
 
+
   // Delay closing the modal (e.g., 1 second)
   setTimeout(() => {
+	  
+	bgm.play();
+	  
 	  document.getElementById("intro-modal").style.display = "none";
 	  startHeroAnimation(); // Begin idle animation
 	  renderStats();
 	  renderMap();
 	  gameEl.innerHTML = "You enter the dungeon...";
+	  
+	entered.play();
+	
   }, 1500); // 1000ms = 1 second delay
+  
 }
 
 

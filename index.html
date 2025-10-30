@@ -9,7 +9,7 @@
 <body>
   
   <div id="stats">
-    ❤️ <span id="hearts">3</span> | 💰 <span id="coins">0</span>
+    ❤️ <span id="hearts">3</span> | 💰 <span id="coins">0</span> <button id="toggle-sound">🔊 Sound On</button>
   </div>
 
   <div id="map"></div>
@@ -47,12 +47,12 @@
     <div id="enemy-animation-container">
       <img id="enemy-img" src="" alt="Enemy" />
     </div>
-    <p id="battle-question">Monster asks...</p>
-    <input type="number" id="battle-answer" placeholder="Your answer" />
-		<button id="submit-btn" onclick="submitAnswer()">
-		  <img src="assets/ui/submit-btn.png" alt="Submit" />
-		</button>
-    <p id="battle-result"></p>
+      <p id="battle-question">Monster asks...</p>
+
+      <!-- Container for dynamic multiple-choice buttons -->
+      <div id="battle-answer" class="choices-container"></div>
+
+      <p id="battle-result"></p>
   </div>
 </div>
 
