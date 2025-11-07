@@ -1,7 +1,12 @@
+let dungeonLevel = 1; // increases each time you clear the dungeon
+let difficultyMultiplier = 1; // scales enemy strength and math difficulty
 let hearts = 3;
 let coins = 0;
 let currentRoom = 0;
+let currentCorrectAnswer = 0;
 const totalRooms = 10;
+
+let highScore = localStorage.getItem("highScore") ? parseInt(localStorage.getItem("highScore")) : 0;
 
 const mapEl = document.getElementById("map");
 const gameEl = document.getElementById("game");
@@ -283,6 +288,13 @@ setTimeout(() => {
 function renderStats() {
   document.getElementById("hearts").textContent = hearts;
   document.getElementById("coins").textContent = coins;
+  document.getElementById("high-score").textContent = highScore;
+  
+  // Optional: show in console or on screen
+  const highScoreEl = document.getElementById("high-score");
+  if (highScoreEl) {
+    highScoreEl.textContent = highScore;
+  }
 }
 
 function renderMap() {
@@ -431,18 +443,15 @@ function animateEnemyStrike(frames, loopDuration = 600) {
 	
 }
 
-
-let currentCorrectAnswer = 0;
-
 function startBattle() {
-  const a = Math.floor(Math.random() * 10) + 1;
-  const b = Math.floor(Math.random() * 10) + 1;
+  // scale numbers by difficulty
+  const a = Math.floor(Math.random() * (10 * difficultyMultiplier)) + 1;
+  const b = Math.floor(Math.random() * (10 * difficultyMultiplier)) + 1;
+
   currentCorrectAnswer = a + b;
 
-  // Set enemy damage based on difficulty
-  if (currentCorrectAnswer <= 10) currentEnemyDamage = 1;
-  else if (currentCorrectAnswer <= 15) currentEnemyDamage = 2;
-  else currentEnemyDamage = 3;
+  // enemy damage scales with dungeon level
+  currentEnemyDamage = Math.ceil(dungeonLevel + (Math.random() * difficultyMultiplier));
 
   // Randomly pick an enemy
   currentEnemy = enemies[Math.floor(Math.random() * enemies.length)];
@@ -454,9 +463,9 @@ function startBattle() {
   // sound effect
   monsterEncouter.play();
 
-  // Set question text
+  // Show math question
   battleQuestion.innerHTML = `A ${currentEnemy.name} blocks your way!<br>What is ${a} + ${b}?`;
-  
+
   // Generate multiple choice options
   const choices = generateChoices(currentCorrectAnswer);
 
@@ -529,53 +538,68 @@ function nextRoom() {
   
   if (hearts <= 0) {
   stopEnemyAnimation();
-  
   spriteImg.src = "assets/sprites/hero/gameover.png";
-  
-  // sound effect
   gameoverSound.play();
-  
-    gameEl.innerHTML += "<br><strong>Game Over!</strong>";
-		document.getElementById("choices").innerHTML = `
-		  <button onclick="restartGame()" class="restart-btn">
-			<img src="assets/ui/retryGame.png" alt="Restart" />
-		  </button>
-		`;
-  } else if (currentRoom >= totalRooms) {
-	  
-  // sound effect
-  youwinSound.play();
-	  
-    gameEl.innerHTML += "<br><strong>You escaped the dungeon!</strong>";
-		document.getElementById("choices").innerHTML = `
-	  <button onclick="restartGame()" class="restart-btn">
-		<img src="assets/ui/retryGame.png" alt="Restart" />
-	  </button>
-	`;
+
+    // 🧮 Check and update high score
+  if (coins > highScore) {
+    highScore = coins;
+    localStorage.setItem("highScore", highScore);
+    gameEl.innerHTML += `
+      <br><strong>Game Over!</strong><br>
+      🎉 <span style="color: gold;">NEW HIGH SCORE:</span> ${highScore} 💰`;
+  } else {
+    gameEl.innerHTML += `
+      <br><strong>Game Over!</strong><br>
+      💰 Coins Collected: ${coins}<br>
+      🏆 High Score: ${highScore}`;
+  }
+
+  document.getElementById("choices").innerHTML = `
+    <button onclick="restartGame()" class="restart-btn">
+      <img src="assets/ui/retryGame.png" alt="Restart" />
+    </button>
+  `;
+} else if (currentRoom >= totalRooms) {
+    // sound effect
+    youwinSound.play();
+
+    // Increase difficulty for next dungeon
+    dungeonLevel++;
+    difficultyMultiplier += 0.3; // each clear increases difficulty by 30%
+
+  gameEl.innerHTML += `<br><strong>You escaped the dungeon!</strong><br>
+    <span style="color: green;">Dungeon Level: ${dungeonLevel}</span><br>
+    💰 Total Coins: ${coins}`;
+
+    document.getElementById("choices").innerHTML = `
+      <button onclick="restartGame()" class="restart-btn">
+        <img src="assets/ui/retryGame.png" alt="Restart" />
+      </button>
+    `;
   }
 }
 
 function restartGame() {
+  coins = (hearts <= 0) ? 0 : coins ;
   hearts = 3;
-  coins = 0;
   currentRoom = 0;
-  
-  // sound effect
+
   entered.play();
-  
-  gameEl.innerHTML = "You re-enter the dungeon...";
-  
+
+  gameEl.innerHTML = `You re-enter Dungeon Level ${dungeonLevel}...`;
+
   document.getElementById("choices").innerHTML = `
-<div id="choices">
-  <button class="path-button" onclick="choosePath('left')">
-    <img src="assets/ui/left-btn.png" alt="Go Left" />
-  </button>
-  <button class="path-button" onclick="choosePath('right')">
-    <img src="assets/ui/right-btn.png" alt="Go Right" />
-  </button>
-</div>
+  <div id="choices">
+    <button class="path-button" onclick="choosePath('left')">
+      <img src="assets/ui/left-btn.png" alt="Go Left" />
+    </button>
+    <button class="path-button" onclick="choosePath('right')">
+      <img src="assets/ui/right-btn.png" alt="Go Right" />
+    </button>
+  </div>
   `;
-  
+
   startHeroAnimation();
   renderStats();
   renderMap();
